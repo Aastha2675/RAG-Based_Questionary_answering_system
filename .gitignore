@@ -1,0 +1,7 @@
+rag-swiggy/
+vectorstore/
+__pycache__/
+*.pyc
+*.db
+*.sqlite
+.env
