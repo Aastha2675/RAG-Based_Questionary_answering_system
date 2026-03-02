@@ -1,5 +1,3 @@
-""" Backend Logic """
-
 # import all the required libraries
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
