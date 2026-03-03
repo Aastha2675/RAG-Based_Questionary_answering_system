@@ -1,99 +1,89 @@
 import os
 import streamlit as st
-from rag_pipeline import load_vectorstore, generate_answer, load_pdf, chunk_pages, create_vectorstore
+from rag_pipeline import load_vectorstore, generate_answer
 
-# page config
+# Page Config
 st.set_page_config(
     page_title="Swiggy Intelligence Bot",
     page_icon="🍔",
     layout="centered",
-    initial_sidebar_state="collapsed" 
+    initial_sidebar_state="collapsed"
 )
 
-# css style
+# Custom CSS
 st.markdown("""
-    <style>
-    /* Hide Sidebar & Decoration */
-    [data-testid="stSidebar"] { display: none; }
-    header { visibility: hidden; }
-    
-    /* Global Dark Background */
-    .stApp {
-        background-color: #0E1117; /* Streamlit's standard dark gray/black */
-    }
+<style>
+[data-testid="stSidebar"] { display: none; }
+header { visibility: hidden; }
 
-    /* Main Container */
-    .block-container {
-        padding-top: 2rem;
-        max-width: 800px;
-    }
+.stApp {
+    background-color: #0E1117;
+}
 
-    /* Header Styling - White Text for Dark Mode */
-    .header-text {
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        color: #FFFFFF;
-        margin-bottom: 0px;
-        font-weight: 800;
-    }
+.block-container {
+    padding-top: 2rem;
+    max-width: 800px;
+}
 
-    /* Subtext Color */
-    .sub-text {
-        color: #A0AEC0; 
-        margin-top: -10px;
-    }
+.header-text {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #FFFFFF;
+    margin-bottom: 0px;
+    font-weight: 800;
+}
 
-    /* Chat Bubbles - Dark Backgrounds */
-    [data-testid="stChatMessage"] {
-        background-color: #1A202C; 
-        border-radius: 15px;
-        padding: 1rem;
-        margin-bottom: 10px;
-        border: 1px solid #2D3748;
-        color: #FFFFFF;
-    }
+.sub-text {
+    color: #A0AEC0;
+    margin-top: -10px;
+}
 
-    /* Input Field Styling */
-    .stChatInputContainer textarea {
-        background-color: #2D3748 !important;
-        color: white !important;
-        border-color: #4A5568 !important;
-    }
+[data-testid="stChatMessage"] {
+    background-color: #1A202C;
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 10px;
+    border: 1px solid #2D3748;
+    color: #FFFFFF;
+}
 
-    /* Swiggy Orange Button */
-    .stButton>button {
-        background-color: #FC8019;
-        color: white;
-        border-radius: 12px;
-        border: none;
-        padding: 0.5rem 2rem;
-        font-weight: 600;
-        transition: 0.3s;
-    }
-    .stButton>button:hover {
-        background-color: #e67316;
-        color: white;
-    }
+.stChatInputContainer textarea {
+    background-color: #2D3748 !important;
+    color: white !important;
+    border-color: #4A5568 !important;
+}
 
-    /* Darker Divider */
-    hr {
-        border-top: 1px solid #2D3748 !important;
-    }
-            
-    [data-testid="column"] {
+.stButton>button {
+    background-color: #FC8019;
+    color: white;
+    border-radius: 12px;
+    border: none;
+    padding: 0.5rem 2rem;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.stButton>button:hover {
+    background-color: #e67316;
+    color: white;
+}
+
+hr {
+    border-top: 1px solid #2D3748 !important;
+}
+
+[data-testid="column"] {
     display: flex;
     align-items: center;
-    }
-            
-    </style>
-    """, unsafe_allow_html=True)
+}
+</style>
+""", unsafe_allow_html=True)
 
-# path config
+# Path Config
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VECTORSTORE_PATH = os.path.join(ROOT_DIR, "vectorstore")
-PDF_PATH = os.path.join(ROOT_DIR, "data", "Swiggy Annual Report.pdf")
 logo_path = os.path.join(ROOT_DIR, "assets", "swiggy_logo.jpeg")
 
-# header section
+# Header Section
 header_col1, header_col2 = st.columns([0.18, 0.82])
 
 with header_col1:
@@ -103,63 +93,74 @@ with header_col1:
         st.write("🍔")
 
 with header_col2:
-    st.markdown("<h1 class='header-text'>Swiggy Annual Report AI Assistant</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-text'>Annual Report 2023-24 Intelligence System</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<h1 class='header-text'>Swiggy Annual Report AI Assistant</h1>",
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        "<p class='sub-text'>Annual Report 2023-24 Intelligence System</p>",
+        unsafe_allow_html=True
+    )
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# for chat history storage
+# Chat History Storage
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# load the vectordb
+# Load Vector DB
 @st.cache_resource
 def load_db():
     if not os.path.exists(VECTORSTORE_PATH):
-        st.warning("Vectorstore missing. Generating now...")
-        pages = load_pdf(PDF_PATH)
-        chunks = chunk_pages(pages)
-        create_vectorstore(chunks, VECTORSTORE_PATH)
-
+        st.error("Vectorstore not found! Please run test_backend.py first.")
+        return None
     return load_vectorstore(VECTORSTORE_PATH)
 
 vectordb = load_db()
 
-# display chat history
+# Display Chat History
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# chat input
-if query := st.chat_input("Ask a question about Swiggy's Annual Report..."):
-    # user msg query
-    st.session_state.messages.append({"role": "user", "content": query})
+# Chat Input
+query = st.chat_input("Ask a question about Swiggy's Annual Report...")
+
+if query:
+    # Store user message
+    st.session_state.messages.append({
+        "role": "user",
+        "content": query
+    })
+
     with st.chat_message("user"):
         st.markdown(query)
 
-    # assistant response
+    # Assistant Response
     if vectordb:
         with st.chat_message("assistant"):
             with st.spinner("Analyzing report..."):
                 try:
                     answer, context = generate_answer(query, vectordb)
+
                     st.markdown(answer)
-                    
-                    # view context
+
                     with st.expander("Source Context"):
                         st.caption(context)
-                    
-                    st.session_state.messages.append({"role": "assistant", "content": answer})
+
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": answer
+                    })
+
                 except Exception as e:
                     st.error(f"Error: {e}")
     else:
         st.warning("Vectorstore is not initialized.")
 
-
-# clear chat history
+# Clear Chat Button
 if len(st.session_state.messages) > 0:
-    st.write("") # Spacer
+    st.write("")
     if st.button("Clear Conversation"):
         st.session_state.messages = []
         st.rerun()
-
