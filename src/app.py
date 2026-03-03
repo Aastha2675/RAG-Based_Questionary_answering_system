@@ -13,40 +13,99 @@ st.set_page_config(
 # css style
 st.markdown("""
     <style>
-    /* Hide the sidebar */
-    [data-testid="stSidebar"] {
-        display: none;
+    /* Hide Sidebar & Decoration */
+    [data-testid="stSidebar"] { display: none; }
+    header { visibility: hidden; }
+    
+    /* Global Dark Background */
+    .stApp {
+        background-color: #0E1117; /* Streamlit's standard dark gray/black */
     }
-    .main {
-        background-color: #ffffff;
+
+    /* Main Container */
+    .block-container {
+        padding-top: 2rem;
+        max-width: 800px;
     }
+
+    /* Header Styling - White Text for Dark Mode */
+    .header-text {
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: #FFFFFF;
+        margin-bottom: 0px;
+        font-weight: 800;
+    }
+
+    /* Subtext Color */
+    .sub-text {
+        color: #A0AEC0; 
+        margin-top: -10px;
+    }
+
+    /* Chat Bubbles - Dark Backgrounds */
+    [data-testid="stChatMessage"] {
+        background-color: #1A202C; 
+        border-radius: 15px;
+        padding: 1rem;
+        margin-bottom: 10px;
+        border: 1px solid #2D3748;
+        color: #FFFFFF;
+    }
+
+    /* Input Field Styling */
+    .stChatInputContainer textarea {
+        background-color: #2D3748 !important;
+        color: white !important;
+        border-color: #4A5568 !important;
+    }
+
+    /* Swiggy Orange Button */
     .stButton>button {
         background-color: #FC8019;
         color: white;
-        border-radius: 20px;
+        border-radius: 12px;
         border: none;
         padding: 0.5rem 2rem;
-        font-weight: bold;
+        font-weight: 600;
+        transition: 0.3s;
     }
-    /* Swiggy Orange focus for input */
-    .stChatInputContainer textarea {
-        border-color: #FC8019 !important;
+    .stButton>button:hover {
+        background-color: #e67316;
+        color: white;
     }
+
+    /* Darker Divider */
+    hr {
+        border-top: 1px solid #2D3748 !important;
+    }
+            
+    [data-testid="column"] {
+    display: flex;
+    align-items: center;
+    }
+            
     </style>
-    """, unsafe_allow_html=True) 
+    """, unsafe_allow_html=True)
 
 # path config
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VECTORSTORE_PATH = os.path.join(ROOT_DIR, "vectorstore")
+logo_path = os.path.join(ROOT_DIR, "assets", "swiggy_logo.jpeg")
 
 # header section
-col1, col2 = st.columns([1, 6])
-with col1:
-    st.image("https://upload.wikimedia.org/wikipedia/en/thumb/1/12/Swiggy_logo.svg/1200px-Swiggy_logo.svg.png", width=70)
-with col2:
-    st.title("Swiggy Annual Report AI Assistant")
+header_col1, header_col2 = st.columns([0.18, 0.82])
 
-st.markdown("---") 
+with header_col1:
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=70)
+    else:
+        st.write("🍔")
+
+with header_col2:
+    st.markdown("<h1 class='header-text'>Swiggy Annual Report AI Assistant</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-text'>Annual Report 2023-24 Intelligence System</p>", unsafe_allow_html=True)
+
+st.markdown("<hr>", unsafe_allow_html=True)
 
 # for chat history storage
 if "messages" not in st.session_state:
@@ -66,13 +125,6 @@ vectordb = load_db()
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-
-# clear chat history
-if len(st.session_state.messages) > 0:
-    st.write("") # Spacer
-    if st.button("Clear Conversation"):
-        st.session_state.messages = []
-        st.rerun()
 
 # chat input
 if query := st.chat_input("Ask a question about Swiggy's Annual Report..."):
@@ -98,3 +150,12 @@ if query := st.chat_input("Ask a question about Swiggy's Annual Report..."):
                     st.error(f"Error: {e}")
     else:
         st.warning("Vectorstore is not initialized.")
+
+
+# clear chat history
+if len(st.session_state.messages) > 0:
+    st.write("") # Spacer
+    if st.button("Clear Conversation"):
+        st.session_state.messages = []
+        st.rerun()
+
