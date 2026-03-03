@@ -23,7 +23,6 @@ rerank_model = None
 def get_reranker():
     global rerank_model
     if rerank_model is None:
-        from sentence_transformers import CrossEncoder
         rerank_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
     return rerank_model
 
