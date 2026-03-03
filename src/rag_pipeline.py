@@ -1,7 +1,7 @@
 # Import Required Libraries
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.embeddings.base import Embeddings
 import os
@@ -9,6 +9,15 @@ from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain_core.messages import HumanMessage, SystemMessage
 from sentence_transformers import CrossEncoder
+from langchain_classic.retrievers.multi_query import MultiQueryRetriever, LineListOutputParser
+from langchain_core.prompts import ChatPromptTemplate,PromptTemplate
+from langchain_core.callbacks import BaseCallbackHandler
+
+
+# to debug
+import logging
+logging.basicConfig()
+logging.getLogger("langchain_classic.retrievers.multi_query").setLevel(logging.INFO)
 
 # load environment variables
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,14 +35,11 @@ def get_reranker():
         rerank_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
     return rerank_model
 
-
-
 # load PDF
 def load_pdf(pdf_path):
     loader = PyPDFLoader(pdf_path)
     pages = loader.load()
     return pages
-
 
 # perform chunking
 def chunk_pages(pages):
@@ -92,25 +98,52 @@ def retrieve_relevant_chunks(query, vectordb, k=3):
     docs = vectordb.similarity_search(query, k=k)
     return docs
 
+# multi-query logic
+query_prompt = ChatPromptTemplate.from_messages([
+    ("system", """You are an AI language model assistant. 
+    Your task is to generate 3 different versions of the given user question 
+    to retrieve relevant documents from a vector database. 
+    Provide these alternative questions separated by newlines only. 
+    Do not include any introductory text or explanations."""),
+    ("human", "{question}")
+])
+
+# to debug the multi-query generation
+class QueryCollector(BaseCallbackHandler):
+    def __init__(self):
+        self.queries = []
+
+    def on_retriever_end(self, documents, *, run_id, parent_run_id = None, **kwargs):
+        pass
 
 # answer generator
 def generate_answer(query, vectordb):
-    repo_id = "meta-llama/Llama-3.2-3B-Instruct"
 
     llm = HuggingFaceEndpoint(
-        repo_id=repo_id,
+        repo_id="meta-llama/Llama-3.2-3B-Instruct",
         huggingfacehub_api_token=hf_token,
         temperature=0.1,
         max_new_tokens=512,
     )
     chat_model = ChatHuggingFace(llm=llm)
 
+    # multi-query retrival
+    retriever = MultiQueryRetriever.from_llm(
+        retriever=vectordb.as_retriever(search_kwargs={"k": 5}), 
+        llm=chat_model,
+        prompt=query_prompt,
+        parser_key="lines"
+    )
+
+    # generates multi-queries for user query
+    initial_docs = retriever.invoke(query)
+
     # re-ranking logic
     # step 0: get the ached model
     rerank_model = get_reranker()
 
-    # step 1: retrieve more chunks than needed 
-    initial_docs = vectordb.similarity_search(query, k=10)
+    # step 1: retrieve more chunks than needed (commented bcoze we added multi-query to handle inital_docs)
+    # initial_docs = vectordb.similarity_search(query, k=10)
     
     # step 2: score them with Cross-Encoder
     pairs = [[query, doc.page_content] for doc in initial_docs]
