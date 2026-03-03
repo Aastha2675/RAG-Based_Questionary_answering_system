@@ -48,8 +48,7 @@ The goal is to create a specialized QA system that eliminates LLM hallucinations
 ## ⚙️ Setup & Installation
 1. Clone the Repository
 ```bash 
-git clone <your-repo-link>
-cd swiggy-rag-bot
+git clone <your-repo-link> cd swiggy-rag-bot
 ```
 
 2. Environment Setup
