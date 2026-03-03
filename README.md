@@ -47,26 +47,31 @@ The goal is to create a specialized QA system that eliminates LLM hallucinations
 
 ## ⚙️ Setup & Installation
 1. Clone the Repository
-```git clone <your-repo-link>
+```bash 
+git clone <your-repo-link>
 cd swiggy-rag-bot
 ```
 
 2. Environment Setup
 Create a .env file in the root directory and add your Hugging Face API token:
-```HUGGINGFACE_API_KEY=your_huggingface_token_here
+```bash
+HUGGINGFACE_API_KEY=your_huggingface_token_here
 ```
 
 3. Install Dependencies
-```pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
 ```
 
 4. Initialize the Vectorstore
 Before running the UI, you must process the PDF and create the local vector database:
-```python testing/test_backend.py
+```bash
+python testing/test_backend.py
 ```
 
 5. Run the Application
-```streamlit run src/app.py
+```bash
+streamlit run src/app.py
 ```
 
 ---
