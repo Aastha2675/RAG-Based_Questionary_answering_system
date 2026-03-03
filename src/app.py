@@ -141,11 +141,14 @@ if query:
         with st.chat_message("assistant"):
             with st.spinner("Analyzing report..."):
                 try:
-                    answer, context = generate_answer(query, vectordb)
+                    answer, context, citations = generate_answer(query, vectordb)
 
                     st.markdown(answer)
 
-                    with st.expander("Source Context"):
+                    if citations:
+                        st.markdown(f"**Sources:** Page(s) {citations}")
+
+                    with st.expander("View Grounding Context"):
                         st.caption(context)
 
                     st.session_state.messages.append({
