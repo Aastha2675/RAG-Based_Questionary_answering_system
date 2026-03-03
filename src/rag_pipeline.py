@@ -6,7 +6,8 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain.embeddings.base import Embeddings
 import os
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEndpoint
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+from langchain_core.messages import HumanMessage, SystemMessage
 
 # load the api key
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -74,7 +75,7 @@ def retrieve_relevant_chunks(query, vectordb, k=3):
 
 # answer generator
 def generate_answer(query, vectordb):
-    repo_id = "mistralai/Mistral-7B-Instruct-v0.3"
+    repo_id = "meta-llama/Llama-3.2-3B-Instruct"
     
     llm = HuggingFaceEndpoint(
         repo_id=repo_id,
@@ -83,11 +84,16 @@ def generate_answer(query, vectordb):
         max_new_tokens=512,
     )
 
+    chat_model = ChatHuggingFace(llm=llm)
+
     retrieved_docs = retrieve_relevant_chunks(query, vectordb)
     context = "\n\n".join([doc.page_content for doc in retrieved_docs])
     
-    # Mistral prompt format
-    prompt = f"<s>[INST] Use the context to answer the question about Swiggy.\nContext: {context}\nQuestion: {query} [/INST]"
+    # Llama 3.2 uses standard chat templates
+    messages = [
+        SystemMessage(content="You are a financial assistant. Answer strictly based on the provided Swiggy Annual Report context."),
+        HumanMessage(content=f"Context: {context}\n\nQuestion: {query}")
+    ]
 
-    answer = llm.invoke(prompt)
-    return answer, context
+    response = chat_model.invoke(messages)
+    return response.content, context
