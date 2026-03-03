@@ -8,21 +8,26 @@ import os
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain_core.messages import HumanMessage, SystemMessage
+from sentence_transformers import CrossEncoder
 
-# Load Environment Variables
+# load environment variables
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(ROOT_DIR, ".env"))
 
+# getting the api token
 hf_token = os.getenv("HUGGINGFACE_API_KEY")
 
-# Load PDF
+# initialize re-ranker model
+rerank_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+
+# load PDF
 def load_pdf(pdf_path):
     loader = PyPDFLoader(pdf_path)
     pages = loader.load()
     return pages
 
 
-# Perform Chunking
+# perform chunking
 def chunk_pages(pages):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -33,7 +38,7 @@ def chunk_pages(pages):
     return chunks
 
 
-# Embedding Model
+# embedding model
 class HFEmbedding(Embeddings):
 
     def __init__(self):
@@ -48,7 +53,7 @@ class HFEmbedding(Embeddings):
         return embedding.tolist()
 
 
-# Create Vector Store
+# create vector store
 def create_vectorstore(chunks, persist_dir="vectorstore"):
     embedding_model = HFEmbedding()
 
@@ -62,7 +67,7 @@ def create_vectorstore(chunks, persist_dir="vectorstore"):
     return vectordb
 
 
-# Load Vector Store
+# load vector store
 def load_vectorstore(persist_dir="vectorstore"):
     embedding_model = HFEmbedding()
 
@@ -74,15 +79,14 @@ def load_vectorstore(persist_dir="vectorstore"):
     return vectordb
 
 
-# Retrieve Relevant Chunks
+# retrieve relevant chunks
 def retrieve_relevant_chunks(query, vectordb, k=3):
     docs = vectordb.similarity_search(query, k=k)
     return docs
 
 
-# Answer Generator
+# answer generator
 def generate_answer(query, vectordb):
-
     repo_id = "meta-llama/Llama-3.2-3B-Instruct"
 
     llm = HuggingFaceEndpoint(
@@ -91,21 +95,31 @@ def generate_answer(query, vectordb):
         temperature=0.1,
         max_new_tokens=512,
     )
-
     chat_model = ChatHuggingFace(llm=llm)
 
-    retrieved_docs = retrieve_relevant_chunks(query, vectordb)
-    context = "\n\n".join([doc.page_content for doc in retrieved_docs])
+    # re-ranking logic
+    # step 1: retrieve more chunks than needed 
+    initial_docs = vectordb.similarity_search(query, k=10)
+    
+    # step 2: score them with Cross-Encoder
+    pairs = [[query, doc.page_content] for doc in initial_docs]
+    scores = rerank_model.predict(pairs)
+    
+    # step c: sort and pick top 3
+    scored_docs = sorted(zip(scores, initial_docs), key=lambda x: x[0], reverse=True)
+    final_docs = [doc for score, doc in scored_docs[:3]]
+
+    context = "\n\n".join([doc.page_content for doc in final_docs])
+
+    # extract citations i.e page numbers
+    pages = [str(doc.metadata.get('page', 0) + 1) for doc in final_docs]
+    citations = ", ".join(sorted(list(set(pages)))) # unique, sorted pages
 
     messages = [
-        SystemMessage(
-            content="You are a financial assistant. Answer strictly based on the provided Swiggy Annual Report context."
-        ),
-        HumanMessage(
-            content=f"Context: {context}\n\nQuestion: {query}"
-        )
+        SystemMessage(content="You are a financial assistant. Answer strictly based on the provided Swiggy Annual Report context."),
+        HumanMessage(content=f"Context: {context}\n\nQuestion: {query}")
     ]
 
     response = chat_model.invoke(messages)
 
-    return response.content, context
+    return response.content, context, citations
