@@ -43,36 +43,6 @@ The goal is to create a specialized QA system that eliminates LLM hallucinations
 └── requirements.txt    # Dependency list
 ```
 
----
-
-## ⚙️ Setup & Installation
-1. Clone the Repository
-```bash 
-git clone https://github.com/Aastha2675/RAG-Based_Questionary_answering_system.git
-cd RAG-Based_Questionary_answering_system
-```
-
-2. Environment Setup
-Create a .env file in the root directory and add your Hugging Face API token:
-```bash
-HUGGINGFACE_API_KEY=your_huggingface_token_here
-```
-
-3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-4. Initialize the Vectorstore
-Before running the UI, you must process the PDF and create the local vector database:
-```bash
-python testing/test_backend.py
-```
-
-5. Run the Application
-```bash
-streamlit run src/app.py
-```
 
 ---
 ## 🔗 Data Source
