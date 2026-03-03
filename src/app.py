@@ -90,6 +90,7 @@ st.markdown("""
 # path config
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VECTORSTORE_PATH = os.path.join(ROOT_DIR, "vectorstore")
+PDF_PATH = os.path.join(ROOT_DIR, "data", "Swiggy Annual Report.pdf")
 logo_path = os.path.join(ROOT_DIR, "assets", "swiggy_logo.jpeg")
 
 # header section
@@ -115,10 +116,8 @@ if "messages" not in st.session_state:
 @st.cache_resource
 def load_db():
     if not os.path.exists(VECTORSTORE_PATH):
-        st.warning("Vectorstore not found — generating now (first-time setup)...")
-        pdf_path = os.path.join(ROOT_DIR, "data", "Swiggy Annula Report.pdf")
-        
-        pages = load_pdf(pdf_path)
+        st.warning("Vectorstore missing. Generating now...")
+        pages = load_pdf(PDF_PATH)
         chunks = chunk_pages(pages)
         create_vectorstore(chunks, VECTORSTORE_PATH)
 
