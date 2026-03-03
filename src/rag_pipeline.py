@@ -5,6 +5,14 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.embeddings.base import Embeddings
 import os
+from dotenv import load_dotenv
+from langchain_huggingface import HuggingFaceEndpoint
+
+# load the api key
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(ROOT_DIR, ".env"))
+
+hf_token = os.getenv("HUGGINGFACE_API_KEY")
 
 # load pdf and convert text
 def load_pdf(pdf_path):
@@ -65,21 +73,21 @@ def retrieve_relevant_chunks(query, vectordb, k=3):
     return docs
 
 # answer generator
-def generate_answer(query, vectordb, llm):
+def generate_answer(query, vectordb):
+    repo_id = "mistralai/Mistral-7B-Instruct-v0.3"
+    
+    llm = HuggingFaceEndpoint(
+        repo_id=repo_id,
+        huggingfacehub_api_token=hf_token,
+        temperature=0.1,
+        max_new_tokens=512,
+    )
+
     retrieved_docs = retrieve_relevant_chunks(query, vectordb)
     context = "\n\n".join([doc.page_content for doc in retrieved_docs])
     
-    prompt = f"""
-    You are an AI assistant that answers ONLY using the Swiggy Annual Report.
-    
-    Context:
-    {context}
+    # Mistral prompt format
+    prompt = f"<s>[INST] Use the context to answer the question about Swiggy.\nContext: {context}\nQuestion: {query} [/INST]"
 
-    Question:
-    {query}
-
-    Answer strictly from the context (no outside knowledge):
-    """
-
-    answer = llm(prompt)
+    answer = llm.invoke(prompt)
     return answer, context
