@@ -18,7 +18,16 @@ load_dotenv(os.path.join(ROOT_DIR, ".env"))
 hf_token = os.getenv("HUGGINGFACE_API_KEY")
 
 # initialize re-ranker model
-rerank_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+rerank_model = None
+
+def get_reranker():
+    global rerank_model
+    if rerank_model is None:
+        from sentence_transformers import CrossEncoder
+        rerank_model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+    return rerank_model
+
+
 
 # load PDF
 def load_pdf(pdf_path):
@@ -98,6 +107,9 @@ def generate_answer(query, vectordb):
     chat_model = ChatHuggingFace(llm=llm)
 
     # re-ranking logic
+    # step 0: get the ached model
+    rerank_model = get_reranker()
+
     # step 1: retrieve more chunks than needed 
     initial_docs = vectordb.similarity_search(query, k=10)
     
