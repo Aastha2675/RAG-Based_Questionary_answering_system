@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from rag_pipeline import load_vectorstore, generate_answer
+from rag_pipeline import load_vectorstore, generate_answer, load_pdf, chunk_pages, create_vectorstore
 
 # page config
 st.set_page_config(
@@ -115,8 +115,13 @@ if "messages" not in st.session_state:
 @st.cache_resource
 def load_db():
     if not os.path.exists(VECTORSTORE_PATH):
-        st.error("Vectorstore not found! Please run test_backend.py first.")
-        return None
+        st.warning("Vectorstore not found — generating now (first-time setup)...")
+        pdf_path = os.path.join(ROOT_DIR, "data", "Swiggy Annula Report.pdf")
+        
+        pages = load_pdf(pdf_path)
+        chunks = chunk_pages(pages)
+        create_vectorstore(chunks, VECTORSTORE_PATH)
+
     return load_vectorstore(VECTORSTORE_PATH)
 
 vectordb = load_db()

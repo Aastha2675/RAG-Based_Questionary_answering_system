@@ -4,16 +4,14 @@ from sentence_transformers import SentenceTransformer
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.embeddings.base import Embeddings
-import os
-from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain_core.messages import HumanMessage, SystemMessage
+import os
+import streamlit as st
 
 # load the api key
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(ROOT_DIR, ".env"))
-
-hf_token = os.getenv("HUGGINGFACE_API_KEY")
+hf_token = st.secrets["HUGGINGFACE_API_KEY"]
 
 # load pdf and convert text
 def load_pdf(pdf_path):
