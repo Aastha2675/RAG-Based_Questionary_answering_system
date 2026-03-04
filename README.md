@@ -108,4 +108,4 @@ python src/evaluate_rag.py
 ---
 
 ## 👤 Author
-Aastha Mhatre 
+Aastha Mhatre | AIML Developer
