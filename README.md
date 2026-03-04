@@ -68,13 +68,13 @@ The system's performance is monitored using Ragas to ensure it meets production 
 ---
 
 ## ⚙️ Setup and Installation
-1. Clone the Repository
+1. Clone the Repository:
 ```bash
 git clone https://github.com/Aastha2675/RAG-Based_Questionary_answering_system.git
 cd RAG-Based_Questionary_answering_system
 ```
 
-2. Environment Setup
+2. Environment Setup:
 Create a .env file in the root
 ```bash
 HUGGINGFACE_API_KEY=your_huggingface_api_token
