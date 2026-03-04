@@ -27,19 +27,19 @@ The objective of this system is to allow users to ask natural language questions
 ![Swiggy Intelligence Bot Architecture](assets/architecture_diagram.png)
 
 ## 🛠️ How it Works
-1. **Ingestion:** The Swiggy Annual Report PDF is loaded and cleaned[cite: 14].
-2. **Chunking:** Text is broken into 1000-character segments with 200-character overlap to preserve context[cite: 15, 16].
-3. **Indexing:** Chunks are converted to vectors and stored locally in ChromaDB[cite: 17, 18, 19].
+1. **Ingestion:** The Swiggy Annual Report PDF is loaded and cleaned.
+2. **Chunking:** Text is broken into 1000-character segments with 200-character overlap to preserve context.
+3. **Indexing:** Chunks are converted to vectors and stored locally in ChromaDB.
 4. **Retrieval:** User queries trigger a multi-query expansion and semantic search.
 5. **Re-ranking:** The most relevant chunks are verified by a Cross-Encoder.
-6. **Generation:** The `Llama-3.2-3B` model synthesizes the final answer using *only* the verified chunks[cite: 22, 23, 28].
+6. **Generation:** The `Llama-3.2-3B` model synthesizes the final answer using *only* the verified chunks.
 
 
 ## ✅ Assignment Requirement Fulfillment
-- **Document Processing:** Implemented `PyPDFLoader` with `RecursiveCharacterTextSplitter` (Chunk size: 1000, Overlap: 200)[cite: 13, 15, 16].
-- **Embedding & Vector Store:** Generated embeddings using `all-MiniLM-L6-v2` and stored in a persistent `ChromaDB` instance[cite: 18, 19].
-- **Strict RAG Logic:** Engineered a "Context-Only" prompt to ensure zero hallucinations[cite: 11, 23].
-- **User Interface:** Developed a Streamlit UI displaying the Final Answer and Supporting Context[cite: 25, 28, 29].
+- **Document Processing:** Implemented `PyPDFLoader` with `RecursiveCharacterTextSplitter` (Chunk size: 1000, Overlap: 200).
+- **Embedding & Vector Store:** Generated embeddings using `all-MiniLM-L6-v2` and stored in a persistent `ChromaDB` instance.
+- **Strict RAG Logic:** Engineered a "Context-Only" prompt to ensure zero hallucinations.
+- **User Interface:** Developed a Streamlit UI displaying the Final Answer and Supporting Context.
 
 ## 🚀 Key Features Implemented
 To ensure the highest accuracy for financial data, this system goes beyond basic similarity search:
