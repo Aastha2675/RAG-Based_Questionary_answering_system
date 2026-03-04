@@ -61,10 +61,14 @@ Document: [Swiggy Annual Report FY 2023-24](https://drive.google.com/file/d/1yTo
 ---
 
 ## 📊 Evaluation Metrics
-The system's performance is monitored using Ragas to ensure it meets production standards:
-- **Faithfulness:** Measures how much the answer adheres to the retrieved context.
-- **Answer Relevancy:** Measures how well the response addresses the user's specific query.
-
+The system was evaluated using the **RAGAS framework**.
+```text
+| Metric           | Score |
+|------------------|-------|
+| Faithfulness     | 1.00  |
+| Answer Relevancy | 0.89  |
+```
+These results indicate that the generated responses remain highly grounded in the retrieved context while maintaining strong query relevance.
 ---
 
 ## ⚙️ Setup and Installation
