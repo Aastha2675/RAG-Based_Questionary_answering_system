@@ -6,7 +6,9 @@ This repository contains a **Retrieval-Augmented Generation (RAG)** application 
 ---
 
 ## 🎯 Project Objective
-The goal is to create a specialized QA system that eliminates LLM hallucinations by forcing the model to retrieve facts directly from Swiggy's official financial disclosures. 
+An advanced AI system built to accurately answer user questions based strictly on the Swiggy Annual Report 2023-24. This project implements a sophisticated Retrieval-Augmented Generation (RAG) pipeline designed to prevent hallucinations and provide context-grounded financial insights.
+
+The objective of this system is to allow users to ask natural language questions regarding Swiggy's business operations and receive accurate answers derived solely from the official document.
 
 ![App Interface](assets/app_screenshot.png)
 
