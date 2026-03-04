@@ -89,18 +89,24 @@ git clone https://github.com/Aastha2675/RAG-Based_Questionary_answering_system.g
 cd RAG-Based_Questionary_answering_system
 ```
 
-2. Environment Setup:
+2. Install Dependencies: Install all required functional and evaluation libraries
+```bash
+pip install -r requirements.txt
+```
+
+
+3. Environment Setup:
 Create a .env file in the root
 ```bash
 HUGGINGFACE_API_KEY=your_huggingface_api_token
 ```
 
-3. Run the Application:
+4. Run the Application:
 ```bash
 streamlit run src/app.py
 ```
 
-4. Run Evaluation:
+5. Run Evaluation:
 ```bash
 python src/evaluate_rag.py
 ```
